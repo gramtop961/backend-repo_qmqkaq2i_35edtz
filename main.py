@@ -130,6 +130,16 @@ def create_announcement(item: Announcement):
     return {"status": "ok", "id": _id}
 
 
+# ---------------- Assets Endpoints ----------------
+
+@app.get("/api/assets")
+def list_assets(limit: int = 20):
+    if db is None:
+        raise HTTPException(status_code=500, detail="Database not configured")
+    cur = db["asset"].find({}, {"_id": 0}).sort("created_at", -1).limit(int(limit))
+    return list(cur)
+
+
 # ---------------- File Upload Endpoints ----------------
 
 @app.post("/api/upload")
