@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, List, Dict, Any
+import json
 import mimetypes
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
@@ -24,6 +25,29 @@ app.add_middleware(
 UPLOAD_DIR = os.path.join(os.getcwd(), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+# Fallback data directory for when DB is unavailable
+DATA_DIR = os.path.join(os.getcwd(), "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+SALAHS_FILE = os.path.join(DATA_DIR, "salah.json")
+ANN_FILE = os.path.join(DATA_DIR, "announcements.json")
+
+
+def _read_json(path: str) -> Any:
+    try:
+        if not os.path.exists(path):
+            return None
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _write_json(path: str, data: Any) -> None:
+    tmp = f"{path}.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False)
+    os.replace(tmp, path)
 
 
 @app.get("/")
@@ -78,8 +102,9 @@ def test_database():
 def get_today_salah():
     today = date.today().isoformat()
     if db is None:
-        # Graceful fallback when DB isn't configured
-        return {"date": today}
+        # Fallback to local JSON store
+        items = _read_json(SALAHS_FILE) or {}
+        return items.get(today, {"date": today})
     doc = db["salahtime"].find_one({"date": today}, {"_id": 0})
     return doc or {"date": today}
 
@@ -87,8 +112,13 @@ def get_today_salah():
 @app.get("/api/salah")
 def get_salah_by_date(d: Optional[str] = None):
     if db is None:
-        # No DB available; provide minimal fallback
-        return [] if d is None else {"date": d}
+        # Fallback to local JSON store
+        store = _read_json(SALAHS_FILE) or {}
+        if d is None:
+            # return recent up to 30 by date desc
+            keys = sorted(store.keys(), reverse=True)[:30]
+            return [store[k] for k in keys]
+        return store.get(d, {"date": d})
     if d is None:
         # return recent 30 entries
         cur = db["salahtime"].find({}, {"_id": 0}).sort("date", -1).limit(30)
@@ -99,11 +129,17 @@ def get_salah_by_date(d: Optional[str] = None):
 
 @app.post("/api/salah")
 def upsert_salah(item: SalahTime):
-    if db is None:
-        raise HTTPException(status_code=503, detail="Database not configured")
     payload = item.model_dump()
-    payload["updated_at"] = datetime.utcnow()
-    db["salahtime"].update_one({"date": item.date.isoformat()}, {"$set": payload}, upsert=True)
+    payload["updated_at"] = datetime.utcnow().isoformat()
+
+    if db is None:
+        # Fallback: write to local JSON store keyed by date
+        store = _read_json(SALAHS_FILE) or {}
+        store[item.date.isoformat()] = payload
+        _write_json(SALAHS_FILE, store)
+        return {"status": "ok", "date": item.date.isoformat(), "fallback": True}
+
+    db["salahtime"].update_one({"date": item.date.isoformat()}, {"$set": {**payload, "updated_at": datetime.utcnow()}}, upsert=True)
     return {"status": "ok", "date": item.date.isoformat()}
 
 
@@ -111,10 +147,28 @@ def upsert_salah(item: SalahTime):
 
 @app.get("/api/announcements")
 def get_active_announcements():
-    if db is None:
-        # Graceful fallback
-        return []
     now = datetime.utcnow()
+    if db is None:
+        # Fallback: read from JSON and filter like DB would
+        items: List[Dict[str, Any]] = _read_json(ANN_FILE) or []
+        result = []
+        for it in items:
+            if not it.get("active", True):
+                continue
+            start_at = it.get("start_at")
+            end_at = it.get("end_at")
+            try:
+                start_ok = (start_at is None) or (datetime.fromisoformat(start_at.replace("Z", "+00:00")) <= now)
+                end_ok = (end_at is None) or (datetime.fromisoformat(end_at.replace("Z", "+00:00")) >= now)
+            except Exception:
+                start_ok = True
+                end_ok = True
+            if start_ok and end_ok:
+                result.append(it)
+        # sort by priority desc
+        result.sort(key=lambda x: int(x.get("priority", 1)), reverse=True)
+        return result
+
     filt = {
         "active": True,
         "$and": [
@@ -129,7 +183,13 @@ def get_active_announcements():
 @app.post("/api/announcements")
 def create_announcement(item: Announcement):
     if db is None:
-        raise HTTPException(status_code=503, detail="Database not configured")
+        # Fallback: append to JSON list
+        items: List[Dict[str, Any]] = _read_json(ANN_FILE) or []
+        data = item.model_dump()
+        data["created_at"] = datetime.utcnow().isoformat()
+        items.append(data)
+        _write_json(ANN_FILE, items)
+        return {"status": "ok", "id": len(items), "fallback": True}
     _id = create_document("announcement", item)
     return {"status": "ok", "id": _id}
 

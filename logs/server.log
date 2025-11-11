@@ -1,45 +1,30 @@
 INFO:     Will watch for changes in these directories: ['/home/workspace']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [243] using StatReload
-INFO:     Started server process [245]
+INFO:     Started reloader process [320] using StatReload
+INFO:     Started server process [322]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     172.20.0.1:38456 - "HEAD / HTTP/1.1" 405 Method Not Allowed
-INFO:     172.20.0.1:38470 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38472 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38488 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38470 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38488 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38472 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38494 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38500 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38516 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38472 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38500 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38494 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38516 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38494 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38472 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38470 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38494 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38500 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38470 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:38494 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:55100 - "GET /Masjid-E-Noor-2025_20251111205729533270.pdf?v=1762895036743 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:55114 - "GET /Masjid-E-Noor-2025_20251111205729533270.pdf?v=1762895037044 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:55138 - "POST /api/upload HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52516 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52518 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52526 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52516 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52518 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52526 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52526 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52526 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52518 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52518 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:55138 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:55138 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:55138 - "GET /api/assets HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52528 - "GET /Masjid-E-Noor-2025_20251111205040340380.pdf?v=1762895037044 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:52536 - "GET /Masjid-E-Noor-2025_20251111205729533270.pdf?v=1762895057324 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33938 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33944 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33962 - "HEAD / HTTP/1.1" 405 Method Not Allowed
+INFO:     172.20.0.1:33952 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33944 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33938 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33952 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33952 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33944 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33952 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:33944 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:60260 - "GET /Masjid-E-Noor-2025_20251111210645818207.pdf?v=1762895363752 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46908 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46920 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46932 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46908 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46932 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46920 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46908 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46908 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46932 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:46932 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:34736 - "GET /Masjid-E-Noor-2025_20251111210645818207.pdf?v=1762895385561 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:34752 - "GET /Masjid-E-Noor-2025_20251111205729533270.pdf?v=1762895385561 HTTP/1.1" 200 OK
