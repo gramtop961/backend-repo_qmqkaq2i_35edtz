@@ -130,17 +130,23 @@ def get_salah_by_date(d: Optional[str] = None):
 @app.post("/api/salah")
 def upsert_salah(item: SalahTime):
     payload = item.model_dump()
+    # Ensure date is a JSON-serializable string
+    payload["date"] = item.date.isoformat()
     payload["updated_at"] = datetime.utcnow().isoformat()
 
     if db is None:
         # Fallback: write to local JSON store keyed by date
         store = _read_json(SALAHS_FILE) or {}
-        store[item.date.isoformat()] = payload
+        store[payload["date"]] = payload
         _write_json(SALAHS_FILE, store)
-        return {"status": "ok", "date": item.date.isoformat(), "fallback": True}
+        return {"status": "ok", "date": payload["date"], "fallback": True}
 
-    db["salahtime"].update_one({"date": item.date.isoformat()}, {"$set": {**payload, "updated_at": datetime.utcnow()}}, upsert=True)
-    return {"status": "ok", "date": item.date.isoformat()}
+    db["salahtime"].update_one(
+        {"date": payload["date"]},
+        {"$set": {**payload, "updated_at": datetime.utcnow().isoformat()}},
+        upsert=True,
+    )
+    return {"status": "ok", "date": payload["date"]}
 
 
 # ---------------- Announcements Endpoints ----------------
