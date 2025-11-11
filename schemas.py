@@ -12,8 +12,8 @@ Model name is converted to lowercase for the collection name:
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, List
-from datetime import date, datetime
+from typing import Optional
+import datetime as dt
 
 # ---------------- Mosque App Schemas ----------------
 
@@ -22,7 +22,7 @@ class SalahTime(BaseModel):
     Daily salah and jamaat times for a specific date
     Collection: "salahtime"
     """
-    date: date = Field(..., description="Date for these timings (YYYY-MM-DD)")
+    date: dt.date = Field(..., description="Date for these timings (YYYY-MM-DD)")
     fajr: Optional[str] = Field(None, description="Adhan time for Fajr (HH:MM)")
     sunrise: Optional[str] = Field(None, description="Sunrise time (HH:MM)")
     dhuhr: Optional[str] = Field(None, description="Adhan time for Dhuhr (HH:MM)")
@@ -39,8 +39,8 @@ class SalahTime(BaseModel):
 class Announcement(BaseModel):
     """Announcements to display on the screen"""
     message: str = Field(..., description="Announcement text")
-    start_at: Optional[datetime] = Field(None, description="Start showing at (UTC)")
-    end_at: Optional[datetime] = Field(None, description="Stop showing at (UTC)")
+    start_at: Optional[dt.datetime] = Field(None, description="Start showing at (UTC)")
+    end_at: Optional[dt.datetime] = Field(None, description="Stop showing at (UTC)")
     priority: int = Field(1, ge=1, le=5, description="Priority 1 (low) to 5 (high)")
     active: bool = Field(True, description="Whether to show it")
 
