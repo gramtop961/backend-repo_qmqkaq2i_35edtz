@@ -1,33 +1,36 @@
 INFO:     Will watch for changes in these directories: ['/home/workspace']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [174] using StatReload
-INFO:     Started server process [176]
+INFO:     Started reloader process [220] using StatReload
+INFO:     Started server process [222]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     172.20.0.1:44270 - "HEAD / HTTP/1.1" 405 Method Not Allowed
-INFO:     172.20.0.1:44280 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44292 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44296 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44280 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44292 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44296 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44296 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:44296 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:35108 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:35108 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:43766 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:43782 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:35108 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:43766 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:35108 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:35108 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51594 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51616 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51606 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51594 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51616 - "GET /api/salah/today HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51606 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51594 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:51594 - "GET /api/announcements HTTP/1.1" 200 OK
-INFO:     172.20.0.1:58738 - "OPTIONS /api/salah HTTP/1.1" 200 OK
-INFO:     172.20.0.1:58738 - "POST /api/salah HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39168 - "HEAD / HTTP/1.1" 405 Method Not Allowed
+INFO:     172.20.0.1:39184 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39190 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39184 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39190 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39184 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39190 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39184 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39204 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39206 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39184 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39204 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39206 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39206 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39204 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39206 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39206 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39722 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39728 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39722 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39728 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39722 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39722 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39728 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:39722 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:51790 - "POST /api/upload HTTP/1.1" 200 OK
+INFO:     172.20.0.1:51790 - "GET /api/salah?d=2025-11-11 HTTP/1.1" 200 OK
+INFO:     172.20.0.1:51790 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:51790 - "OPTIONS /api/salah HTTP/1.1" 200 OK
+INFO:     172.20.0.1:51794 - "POST /api/salah HTTP/1.1" 200 OK
