@@ -1,12 +1,13 @@
 import os
 from datetime import datetime, date
-from typing import Optional, List
+from typing import Optional
+import mimetypes
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from database import db, create_document, get_documents
+from database import db, create_document
 from schemas import SalahTime, Announcement, Asset
 
 app = FastAPI(title="Masjid Display Backend")
@@ -75,9 +76,10 @@ def test_database():
 
 @app.get("/api/salah/today")
 def get_today_salah():
-    if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
     today = date.today().isoformat()
+    if db is None:
+        # Graceful fallback when DB isn't configured
+        return {"date": today}
     doc = db["salahtime"].find_one({"date": today}, {"_id": 0})
     return doc or {"date": today}
 
@@ -85,7 +87,8 @@ def get_today_salah():
 @app.get("/api/salah")
 def get_salah_by_date(d: Optional[str] = None):
     if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
+        # No DB available; provide minimal fallback
+        return [] if d is None else {"date": d}
     if d is None:
         # return recent 30 entries
         cur = db["salahtime"].find({}, {"_id": 0}).sort("date", -1).limit(30)
@@ -97,7 +100,7 @@ def get_salah_by_date(d: Optional[str] = None):
 @app.post("/api/salah")
 def upsert_salah(item: SalahTime):
     if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
+        raise HTTPException(status_code=503, detail="Database not configured")
     payload = item.model_dump()
     payload["updated_at"] = datetime.utcnow()
     db["salahtime"].update_one({"date": item.date.isoformat()}, {"$set": payload}, upsert=True)
@@ -109,7 +112,8 @@ def upsert_salah(item: SalahTime):
 @app.get("/api/announcements")
 def get_active_announcements():
     if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
+        # Graceful fallback
+        return []
     now = datetime.utcnow()
     filt = {
         "active": True,
@@ -125,7 +129,7 @@ def get_active_announcements():
 @app.post("/api/announcements")
 def create_announcement(item: Announcement):
     if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
+        raise HTTPException(status_code=503, detail="Database not configured")
     _id = create_document("announcement", item)
     return {"status": "ok", "id": _id}
 
@@ -134,10 +138,29 @@ def create_announcement(item: Announcement):
 
 @app.get("/api/assets")
 def list_assets(limit: int = 20):
-    if db is None:
-        raise HTTPException(status_code=500, detail="Database not configured")
-    cur = db["asset"].find({}, {"_id": 0}).sort("created_at", -1).limit(int(limit))
-    return list(cur)
+    # If DB available, prefer it
+    if db is not None:
+        cur = db["asset"].find({}, {"_id": 0}).sort("created_at", -1).limit(int(limit))
+        return list(cur)
+
+    # Fallback: list files from uploads directory
+    items = []
+    try:
+        entries = sorted(
+            (f for f in os.listdir(UPLOAD_DIR) if os.path.isfile(os.path.join(UPLOAD_DIR, f))),
+            reverse=True,
+        )
+        for f in entries[: int(limit)]:
+            path = os.path.join(UPLOAD_DIR, f)
+            ctype, _ = mimetypes.guess_type(path)
+            items.append({
+                "filename": f,
+                "content_type": ctype or "application/octet-stream",
+                "path": f"/uploads/{f}",
+            })
+    except Exception:
+        pass
+    return items
 
 
 # ---------------- File Upload Endpoints ----------------
@@ -158,9 +181,17 @@ async def upload_file(file: UploadFile = File(...)):
         f.write(content)
 
     url = f"/uploads/{safe_name}"
-    meta = Asset(filename=safe_name, content_type=file.content_type or "application/octet-stream", path=url)
-    create_document("asset", meta)
-    return {"status": "ok", "url": url, "content_type": meta.content_type}
+
+    # Try to record in DB; if DB not available, still succeed
+    try:
+        if db is not None:
+            meta = Asset(filename=safe_name, content_type=file.content_type or "application/octet-stream", path=url)
+            create_document("asset", meta)
+    except Exception:
+        # Ignore DB errors for upload success
+        pass
+
+    return {"status": "ok", "url": url, "content_type": file.content_type or "application/octet-stream"}
 
 
 if __name__ == "__main__":

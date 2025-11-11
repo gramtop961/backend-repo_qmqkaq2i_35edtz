@@ -1,22 +1,21 @@
 INFO:     Will watch for changes in these directories: ['/home/workspace']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [253] using StatReload
-INFO:     Started server process [255]
+INFO:     Started reloader process [151] using StatReload
+INFO:     Started server process [153]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-INFO:     172.20.0.1:55080 - "GET /api/salah/today HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55080 - "GET /api/salah/today HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55080 - "GET /api/announcements HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55080 - "GET /api/announcements HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55090 - "GET /api/assets HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55090 - "GET /api/assets HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55108 - "HEAD / HTTP/1.1" 405 Method Not Allowed
-INFO:     172.20.0.1:55094 - "GET /api/salah/today HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55094 - "GET /api/announcements HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55094 - "GET /api/assets HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55094 - "GET /api/salah/today HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55094 - "GET /api/salah/today HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55094 - "GET /api/announcements HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:55094 - "GET /api/announcements HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:35878 - "GET /api/assets HTTP/1.1" 500 Internal Server Error
-INFO:     172.20.0.1:35878 - "GET /api/assets HTTP/1.1" 500 Internal Server Error
+INFO:     172.20.0.1:45426 - "HEAD / HTTP/1.1" 405 Method Not Allowed
+INFO:     172.20.0.1:45436 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:45436 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:45436 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:45436 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:45444 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:45444 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:35224 - "GET /Masjid-E-Noor-2025_20251111204553598955.pdf HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48148 - "GET /Masjid-E-Noor-2025_20251111204553598955.pdf HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48154 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48154 - "GET /api/salah/today HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48154 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48154 - "GET /api/announcements HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48166 - "GET /api/assets HTTP/1.1" 200 OK
+INFO:     172.20.0.1:48154 - "GET /api/assets HTTP/1.1" 200 OK
