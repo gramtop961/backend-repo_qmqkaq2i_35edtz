@@ -3,10 +3,12 @@ from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 import json
 import mimetypes
+import csv
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
 from database import db, create_document
 from schemas import SalahTime, Announcement, Asset
@@ -258,6 +260,165 @@ async def upload_file(file: UploadFile = File(...)):
         pass
 
     return {"status": "ok", "url": url, "content_type": file.content_type or "application/octet-stream"}
+
+
+# ---------------- AI Sync (Lightweight) ----------------
+
+class AISyncRequest(BaseModel):
+    date: str = Field(..., description="YYYY-MM-DD to import")
+    commit: bool = Field(True, description="If true, save to store; otherwise preview only")
+
+
+PRAYER_KEYS = [
+    "fajr", "fajr_jamaat", "sunrise",
+    "dhuhr", "dhuhr_jamaat",
+    "asr", "asr_jamaat",
+    "maghrib", "maghrib_jamaat",
+    "isha", "isha_jamaat",
+]
+
+
+def _latest_upload() -> Optional[str]:
+    try:
+        entries = [
+            os.path.join(UPLOAD_DIR, f)
+            for f in os.listdir(UPLOAD_DIR)
+            if os.path.isfile(os.path.join(UPLOAD_DIR, f))
+        ]
+        if not entries:
+            return None
+        entries.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+        return entries[0]
+    except Exception:
+        return None
+
+
+def _parse_csv(path: str) -> List[Dict[str, Any]]:
+    rows: List[Dict[str, Any]] = []
+    with open(path, "r", encoding="utf-8") as f:
+        sniffer = csv.Sniffer()
+        sample = f.read(2048)
+        f.seek(0)
+        dialect = sniffer.sniff(sample) if sample else csv.excel
+        reader = csv.DictReader(f, dialect=dialect)
+        for r in reader:
+            # normalize keys to lowercase
+            norm = { (k or '').strip().lower(): (v or '').strip() for k, v in r.items() }
+            rows.append(norm)
+    return rows
+
+
+def _coerce_times(record: Dict[str, Any]) -> Dict[str, Any]:
+    out: Dict[str, Any] = {}
+    for k in PRAYER_KEYS:
+        v = record.get(k)
+        if not v:
+            continue
+        # Normalize common formats like 6:5 to 06:05, and remove am/pm if present
+        t = str(v).strip().lower().replace('.', ':').replace(' ', '')
+        t = t.replace('am', '').replace('pm', '')
+        if ':' in t:
+            parts = t.split(':')
+            try:
+                hh = int(parts[0])
+                mm = int(parts[1][:2])
+                out[k] = f"{hh:02d}:{mm:02d}"
+            except Exception:
+                continue
+    return out
+
+
+@app.post("/api/sync/ai")
+def ai_sync(req: AISyncRequest):
+    """
+    Lightweight AI-style sync: looks for the most recent uploaded CSV/JSON timetable,
+    extracts times for the requested date, and optionally commits them.
+    Supported formats now: CSV (headers should include columns like fajr, fajr_jamaat, ... and optional date)
+    JSON: either an object keyed by date or a list of rows with a 'date' field.
+    """
+    target_date = req.date
+    # Validate date format
+    try:
+        datetime.fromisoformat(target_date)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid date format; use YYYY-MM-DD")
+
+    path = _latest_upload()
+    if not path:
+        raise HTTPException(status_code=404, detail="No uploaded files found to sync from")
+
+    _, ext = os.path.splitext(path)
+    ext = ext.lower()
+
+    extracted: Dict[str, Any] = {"date": target_date}
+
+    try:
+        if ext == ".csv":
+            rows = _parse_csv(path)
+            # Try to pick row matching date
+            match = None
+            for r in rows:
+                # try keys like 'date' or 'day'
+                d = r.get('date') or r.get('day')
+                if d:
+                    d = d.strip()[:10]
+                if d == target_date:
+                    match = r
+                    break
+            if match is None and rows:
+                # fallback first row
+                match = rows[0]
+            if match:
+                extracted.update(_coerce_times(match))
+        elif ext == ".json":
+            data = _read_json(path)
+            if isinstance(data, dict):
+                row = data.get(target_date)
+                if isinstance(row, dict):
+                    extracted.update(_coerce_times({k.lower(): v for k, v in row.items()}))
+            if isinstance(data, list):
+                for r in data:
+                    if isinstance(r, dict) and (r.get('date') == target_date):
+                        extracted.update(_coerce_times({k.lower(): v for k, v in r.items()}))
+                        break
+        else:
+            raise HTTPException(status_code=415, detail=f"Unsupported file type for AI sync: {ext}. Use CSV or JSON.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse source file: {str(e)[:120]}")
+
+    has_any = any(extracted.get(k) for k in PRAYER_KEYS)
+    if not has_any:
+        raise HTTPException(status_code=422, detail="Could not extract any times from the latest upload. Ensure CSV/JSON has columns like fajr, fajr_jamaat, ...")
+
+    if req.commit:
+        # Commit to DB or fallback store
+        payload = {
+            **{k: extracted.get(k) for k in PRAYER_KEYS if extracted.get(k)},
+            "date": target_date
+        }
+        # Use existing upsert logic
+        if db is None:
+            store = _read_json(SALAHS_FILE) or {}
+            existing = store.get(target_date, {})
+            existing.update(payload)
+            existing["updated_at"] = datetime.utcnow().isoformat()
+            store[target_date] = existing
+            _write_json(SALAHS_FILE, store)
+        else:
+            db["salahtime"].update_one(
+                {"date": target_date},
+                {"$set": {**payload, "updated_at": datetime.utcnow().isoformat()}},
+                upsert=True,
+            )
+
+    return {
+        "status": "ok",
+        "source": os.path.basename(path),
+        "committed": req.commit,
+        "data": {k: extracted.get(k) for k in ["date"] + PRAYER_KEYS if extracted.get(k) or k == "date"}
+    }
 
 
 if __name__ == "__main__":
