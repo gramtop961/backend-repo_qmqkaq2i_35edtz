@@ -308,6 +308,34 @@ def _parse_csv(path: str) -> List[Dict[str, Any]]:
     return rows
 
 
+def _parse_xlsx(path: str) -> List[Dict[str, Any]]:
+    """Parse the first worksheet of an XLSX file into list of dict rows with lowercased headers."""
+    try:
+        from openpyxl import load_workbook
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"XLSX support not available: {str(e)[:120]}")
+
+    wb = load_workbook(filename=path, data_only=True, read_only=True)
+    ws = wb.worksheets[0]
+
+    rows: List[List[Any]] = []
+    for row in ws.iter_rows(values_only=True):
+        rows.append([cell if cell is not None else "" for cell in row])
+    if not rows:
+        return []
+    headers = [str(h).strip().lower() for h in rows[0]]
+    out: List[Dict[str, Any]] = []
+    for r in rows[1:]:
+        item: Dict[str, Any] = {}
+        for idx, h in enumerate(headers):
+            if not h:
+                continue
+            val = r[idx] if idx < len(r) else ""
+            item[h] = str(val).strip()
+        out.append(item)
+    return out
+
+
 def _coerce_times(record: Dict[str, Any]) -> Dict[str, Any]:
     out: Dict[str, Any] = {}
     for k in PRAYER_KEYS:
@@ -316,6 +344,11 @@ def _coerce_times(record: Dict[str, Any]) -> Dict[str, Any]:
             continue
         # Normalize common formats like 6:5 to 06:05, and remove am/pm if present
         t = str(v).strip().lower().replace('.', ':').replace(' ', '')
+        # Convert times like 615 to 06:15
+        if ':' not in t and t.isdigit() and 3 <= len(t) <= 4:
+            # e.g., 615 -> 6:15, 0915 -> 09:15
+            t = f"{t[:-2]}:{t[-2:]}"
+        # remove am/pm after adding colon if needed
         t = t.replace('am', '').replace('pm', '')
         if ':' in t:
             parts = t.split(':')
@@ -331,10 +364,11 @@ def _coerce_times(record: Dict[str, Any]) -> Dict[str, Any]:
 @app.post("/api/sync/ai")
 def ai_sync(req: AISyncRequest):
     """
-    Lightweight AI-style sync: looks for the most recent uploaded CSV/JSON timetable,
+    Lightweight AI-style sync: looks for the most recent uploaded CSV/JSON/XLSX timetable,
     extracts times for the requested date, and optionally commits them.
     Supported formats now: CSV (headers should include columns like fajr, fajr_jamaat, ... and optional date)
     JSON: either an object keyed by date or a list of rows with a 'date' field.
+    XLSX: first worksheet with headers in first row.
     """
     target_date = req.date
     # Validate date format
@@ -361,7 +395,7 @@ def ai_sync(req: AISyncRequest):
                 # try keys like 'date' or 'day'
                 d = r.get('date') or r.get('day')
                 if d:
-                    d = d.strip()[:10]
+                    d = str(d).strip()[:10]
                 if d == target_date:
                     match = r
                     break
@@ -378,11 +412,25 @@ def ai_sync(req: AISyncRequest):
                     extracted.update(_coerce_times({k.lower(): v for k, v in row.items()}))
             if isinstance(data, list):
                 for r in data:
-                    if isinstance(r, dict) and (r.get('date') == target_date):
+                    if isinstance(r, dict) and (str(r.get('date')) == target_date):
                         extracted.update(_coerce_times({k.lower(): v for k, v in r.items()}))
                         break
+        elif ext == ".xlsx":
+            rows = _parse_xlsx(path)
+            match = None
+            for r in rows:
+                d = r.get('date') or r.get('day')
+                if d:
+                    d = str(d).strip()[:10]
+                if d == target_date:
+                    match = r
+                    break
+            if match is None and rows:
+                match = rows[0]
+            if match:
+                extracted.update(_coerce_times(match))
         else:
-            raise HTTPException(status_code=415, detail=f"Unsupported file type for AI sync: {ext}. Use CSV or JSON.")
+            raise HTTPException(status_code=415, detail=f"Unsupported file type for AI sync: {ext}. Use CSV, JSON, or XLSX.")
     except HTTPException:
         raise
     except Exception as e:
@@ -390,7 +438,7 @@ def ai_sync(req: AISyncRequest):
 
     has_any = any(extracted.get(k) for k in PRAYER_KEYS)
     if not has_any:
-        raise HTTPException(status_code=422, detail="Could not extract any times from the latest upload. Ensure CSV/JSON has columns like fajr, fajr_jamaat, ...")
+        raise HTTPException(status_code=422, detail="Could not extract any times from the latest upload. Ensure CSV/JSON/XLSX has columns like fajr, fajr_jamaat, ...")
 
     if req.commit:
         # Commit to DB or fallback store
